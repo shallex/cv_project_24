@@ -20,7 +20,7 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 def get_dataloaders(preprocess):
     dataset_kwargs = dict(
-        dataset_path="/mnt/hdd/home/home/asharshavin/other/CV_Trans/MELD.Preprocessed",
+        dataset_path="MELD.Preprocessed",
         image_transform = preprocess,
         text_transform = lambda x: clip.tokenize(x, truncate=True),
         encode_emotion=True,
