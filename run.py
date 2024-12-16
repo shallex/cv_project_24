@@ -127,7 +127,7 @@ def main():
 
     assert os.path.exists(args.dataset_path), "Dataset path does not exist"
     save_dir = f"./logs/{args.exp_name}"
-    assert os.path.exists(save_dir), "Save directory does not exist"
+    assert not os.path.exists(save_dir), "Save directory does not exist"
 
     clip_model, preprocess = clip.load("ViT-B/32", device=device)
     for param in clip_model.parameters():
@@ -144,7 +144,7 @@ def main():
     # Training module
     training_module = ClassificatorModule(model, loss_fn, optimizer_config)
 
-    train_loader, val_loader, test_loader, label_encoder = get_dataloaders(preprocess)
+    train_loader, val_loader, test_loader, label_encoder = get_dataloaders(preprocess, args)
     
     learning_rate_callback = pl.callbacks.LearningRateMonitor(
         logging_interval="step",
