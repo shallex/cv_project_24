@@ -1,6 +1,7 @@
 import warnings
 import clip
 import torch
+import os
 
 import argparse
 import pytorch_lightning as pl
@@ -18,16 +19,26 @@ warnings.filterwarnings('ignore')
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-def get_dataloaders(preprocess):
+
+def _parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--exp_name', type=str, required=True)
+    parser.add_argument('--dataset_path', type=str, default='./meld_dataset')
+    parser.add_argument('--batch_size', type=int, default=32)
+    parser.add_argument('--epochs', type=int, default=20)
+    return parser.parse_args()
+
+
+def get_dataloaders(preprocess, args):
     dataset_kwargs = dict(
-        dataset_path="MELD.Preprocessed",
+        dataset_path=args.dataset_path,
         image_transform = preprocess,
         text_transform = lambda x: clip.tokenize(x, truncate=True),
         encode_emotion=True,
     )
 
     dataloader_kwargs = dict(
-        batch_size=32,
+        batch_size=args.batch_size,
         num_workers=4
     )
 
@@ -49,9 +60,7 @@ def get_configs():
     }
 
     training_config = {
-        "batch_size": 32,
-        "epochs": 20,
-        "learning_rate": 1e-3,
+        "learning_rate": 1e-4,
         "weight_decay": 0.1,
         "scheduler_step_size": 1,
         "scheduler_gamma": 0.8,
@@ -114,6 +123,12 @@ def test_cm(training_module, trainer, test_loader, label_encoder):
 
 def main():
     pl.seed_everything(seed=42, workers=True)
+    args = _parse_args()
+
+    assert os.path.exists(args.dataset_path), "Dataset path does not exist"
+    save_dir = f"./logs/{args.exp_name}"
+    assert os.path.exists(save_dir), "Save directory does not exist"
+
     clip_model, preprocess = clip.load("ViT-B/32", device=device)
     for param in clip_model.parameters():
         param.requires_grad = False
@@ -135,14 +150,13 @@ def main():
         logging_interval="step",
     )
     tensorboard_logger = pl.loggers.TensorBoardLogger(
-        save_dir="./logs/baseline_model_4",
+        save_dir=save_dir,
         name=None,
-        version="logs",
     )
 
     trainer = pl.Trainer(
         devices=1,
-        max_epochs=training_config.epochs,
+        max_epochs=args.epochs,
         callbacks=[learning_rate_callback],
         logger=tensorboard_logger,
         deterministic=True,

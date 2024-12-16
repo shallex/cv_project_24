@@ -10,7 +10,6 @@ class BaseClassificator(nn.Module):
         self.linear2 = nn.Linear(hidden_size, hidden_size // 2)
         self.linear3 = nn.Linear(hidden_size // 2, output_size)
         self.relu = nn.ReLU()
-        self.sigmoid = nn.Sigmoid()
     
     def forward(self, x):
         x = self.linear1(x)
@@ -18,7 +17,6 @@ class BaseClassificator(nn.Module):
         x = self.linear2(x)
         x = self.relu(x)
         x = self.linear3(x)
-        x = self.sigmoid(x)
         return x
     
 
