@@ -66,7 +66,6 @@ def get_configs():
         "scheduler_gamma": 0.8,
     }
 
-    # model_config = argparse.Namespace(**model_config)
     training_config = argparse.Namespace(**training_config)
     return model_config, training_config
 
